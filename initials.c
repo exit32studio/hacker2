@@ -14,7 +14,7 @@
  
  
  /**
-  * ASCII values for upper c
+  * ASCII values for upper case and lower case letters
   */
  #define START_OF_UPPER_CASE    65
  #define START_OF_LOWER_CASE    97
