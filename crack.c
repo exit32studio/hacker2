@@ -26,7 +26,8 @@
 const char *DICTIONARY_PATH = "/usr/share/dict/words";
 
 //Make an array of possible characters (faster than ASCII because it doesn't have extra characters)
-const char *CHAR_ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+//const char *CHAR_ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+const char *CHAR_ARRAY = "abcdefghijklmnopqrstuvwxyz";
 
 /**
  * Runs through a predetermined dictionary of words and tries to brute force through the encryption
@@ -36,7 +37,7 @@ bool dictionaryAttack(char *password, char *salt);
 /**
  * Tries a true brute force attack using recursion
  */
-bool bruteForce(char *password, char *salt, char *testWord, int position);
+bool bruteForce(char *password, char *salt, char *testWord, int position, bool *success);
 
 /**
  * Runs "testWord" through the crypt function, using "salt".  Then compares to the password we're trying to crack
@@ -76,7 +77,13 @@ int main (int argc, char *argv[])
             
             //Try brute force starting at the most signifigant character
             int position = MAX_PASSWORD_LENGTH - 1;
-            bruteForce(argv[1], salt, testWord, position);
+            //Create a bool for testing success (default to fail)
+            bool success = false;
+            success = bruteForce(argv[1], salt, testWord, position, &success);
+            if (!success)
+            {
+                printf("Brute force failed\n");
+            }
             free(testWord);
         }
         
@@ -122,25 +129,27 @@ bool dictionaryAttack(char *password, char *salt)
 /**
  * Tries a true brute force attack
  */
-bool bruteForce(char *password, char *salt, char *testWord, int position)
+bool bruteForce(char *password, char *salt, char *testWord, int position, bool *success)
 {
-    //Default to fail
-    bool success = false;
     int length = strlen(CHAR_ARRAY);
-    
-    for (int j = 0; (j < length) && (!success); j++)
-    {
+    //Only run the loop while success is false
+    for (int j = 0; !*success && j < length; j++)
+    {        
         if (position > 0)
         {
             int deeperPosition = position - 1;
-            success = bruteForce(password, salt, testWord, deeperPosition);
+            *success = bruteForce(password, salt, testWord, deeperPosition, success);
         }
         
-        testWord[position] = CHAR_ARRAY[j];
-        printf("try: %s\n", testWord);
-        success = tryPassword(password, salt, testWord);
+        //Only go into the test if success is still fail from the recursion
+        if (!*success)
+        {
+            testWord[position] = CHAR_ARRAY[j];
+            printf("try: %s\n", testWord);
+            *success = tryPassword(password, salt, testWord);
+        }
     }
-    return success;
+    return *success;
 }
 
 /**
