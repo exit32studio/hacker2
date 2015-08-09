@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_PASSWORD_LENGTH 8
+#define MAX_PASSWORD_LENGTH 4
 #define MIN_ASCII_CHARACTER 48
 #define MAX_ASCII_CHARACTER 122
 #define MAX_WORD_LENGTH 128
@@ -67,6 +67,7 @@ int main (int argc, char *argv[])
         else
         {
             printf("Dictionary attack failed\n");
+            printf("Attempting brute force attack (may take a long time)...\n");
             
             //Start off with all null termination characters
             char *testWord = malloc((MAX_PASSWORD_LENGTH + 1) * sizeof(char));
@@ -141,13 +142,14 @@ bool bruteForce(char *password, char *salt, char *testWord, int position, bool *
             *success = bruteForce(password, salt, testWord, deeperPosition, success);
         }
         
-        //Only go into the test if success is still fail from the recursion
-        if (!*success)
+        //Check if successful coming out of recursion
+        //Only step in if not successful
+        if (*success)
         {
-            testWord[position] = CHAR_ARRAY[j];
-            printf("try: %s\n", testWord);
-            *success = tryPassword(password, salt, testWord);
+            break;
         }
+        testWord[position] = CHAR_ARRAY[j];
+        *success = tryPassword(password, salt, testWord);
     }
     return *success;
 }
